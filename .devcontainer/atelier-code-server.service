@@ -6,10 +6,9 @@ After=network.target
 Type=simple
 User=vscode
 Group=vscode
-WorkingDirectory=/workspaces/atelier-workspace
 Environment=HOME=/home/vscode
 Environment=USER=vscode
-ExecStart=/usr/bin/code-server --bind-addr 0.0.0.0:8080 --auth none /workspaces/atelier-workspace
+ExecStart=/bin/bash -c "mkdir -p /workspaces/atelier-workspace && exec /usr/bin/code-server --bind-addr 0.0.0.0:8080 --auth none /workspaces/atelier-workspace"
 Restart=on-failure
 RestartSec=2
 

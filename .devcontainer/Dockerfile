@@ -66,5 +66,5 @@ RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
     && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service \
     && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service
 
-RUN mkdir -p /workspaces/atelier-workspace && chown -R vscode:vscode /workspaces
+RUN mkdir -p /workspaces/atelier-workspace && touch /workspaces/atelier-workspace/.keep && chown -R vscode:vscode /workspaces
 WORKDIR /workspaces/atelier-workspace
