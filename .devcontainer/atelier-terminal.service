@@ -8,7 +8,15 @@ User=vscode
 Group=vscode
 Environment=HOME=/home/vscode
 Environment=USER=vscode
-ExecStart=/bin/bash -c "mkdir -p /workspaces/atelier-workspace && cd /workspaces/atelier-workspace && exec /usr/local/bin/ttyd --port 7681 --writable bash -l"
+# Basic Auth (atelier:<mot de passe>) recupere via atelier-fetch-session-auth.sh
+# (voir ce script) : le mot de passe est genere et provisionne par le
+# controller atelier dans OpenBao, servi par net-proxy — jamais connu a
+# l'avance ni fige dans cette image, qui est partagee entre Workshops
+# utilisant le meme devcontainer. Guillemets simples (pas doubles) pour
+# tout le script bash -c : evite toute ambiguite avec l'expansion de
+# variables `$VAR`/`${VAR}` que systemd applique lui-meme aux lignes
+# ExecStart avant de les passer au shell.
+ExecStart=/bin/bash -c 'mkdir -p /workspaces/atelier-workspace && cd /workspaces/atelier-workspace && exec /usr/local/bin/ttyd --port 7681 --writable --credential "atelier:$(/usr/local/bin/atelier-fetch-session-auth.sh)" bash -l'
 Restart=on-failure
 RestartSec=2
 

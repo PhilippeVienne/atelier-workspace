@@ -48,6 +48,14 @@ RUN curl -fsSL -o /usr/local/bin/ttyd \
         "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
     && chmod +x /usr/local/bin/ttyd
 
+# Recupere le mot de passe de session (Basic Auth ttyd/code-server,
+# provisionne par le controller atelier dans OpenBao) aupres de net-proxy —
+# voir ce script pour le detail. Utilise par les deux unites systemd
+# ci-dessous, jamais par postStartCommand (pas de mise en veille/reseau
+# atelier hors d'une vraie microVM Firecracker).
+COPY atelier-fetch-session-auth.sh /usr/local/bin/atelier-fetch-session-auth.sh
+RUN chmod +x /usr/local/bin/atelier-fetch-session-auth.sh
+
 # Demarrage au boot via systemd (pas `postStartCommand`, jamais rejoue par
 # le noyau — voir plus haut) : necessaire pour que ces services tournent
 # reellement une fois ce devcontainer boote comme microVM Firecracker par

@@ -8,7 +8,16 @@ User=vscode
 Group=vscode
 Environment=HOME=/home/vscode
 Environment=USER=vscode
-ExecStart=/bin/bash -c "mkdir -p /workspaces/atelier-workspace && exec /usr/bin/code-server --bind-addr 0.0.0.0:8080 --auth none /workspaces/atelier-workspace"
+# Basic Auth (utilisateur "atelier", mot de passe recupere via
+# atelier-fetch-session-auth.sh) : code-server lit le mot de passe en clair
+# depuis la variable d'environnement PASSWORD quand --auth password est
+# demande. Meme secret que ttyd (provisionne par le controller atelier dans
+# OpenBao, servi par net-proxy) : jamais connu a l'avance ni fige dans
+# cette image, qui est partagee entre Workshops utilisant le meme
+# devcontainer. Guillemets simples pour tout le script bash -c : evite
+# toute ambiguite avec l'expansion `$VAR`/`${VAR}` que systemd applique
+# lui-meme aux lignes ExecStart avant de les passer au shell.
+ExecStart=/bin/bash -c 'mkdir -p /workspaces/atelier-workspace && export PASSWORD="$(/usr/local/bin/atelier-fetch-session-auth.sh)" && exec /usr/bin/code-server --bind-addr 0.0.0.0:8080 --auth password /workspaces/atelier-workspace'
 Restart=on-failure
 RestartSec=2
 
