@@ -4,6 +4,13 @@ After=network.target
 
 [Service]
 Type=simple
+# Doit correspondre a `remoteUser`/`workspaceFolder` de devcontainer.json
+# (voir le commentaire dans Dockerfile) : un shell root ici contredirait la
+# spec devcontainer, qui promet un shell dans l'identite/le repertoire
+# choisis par l'auteur du devcontainer, pas root par accident faute de
+# `User=` explicite.
+User=vscode
+WorkingDirectory=/workspaces/atelier-workspace
 ExecStart=/usr/local/bin/ttyd --port 7681 --writable bash
 Restart=on-failure
 RestartSec=2

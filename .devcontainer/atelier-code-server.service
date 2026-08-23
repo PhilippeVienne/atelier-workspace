@@ -4,6 +4,10 @@ After=network.target
 
 [Service]
 Type=simple
+# Meme raison que atelier-terminal.service : doit tourner comme `remoteUser`
+# (devcontainer.json), pas root par defaut faute de `User=`.
+User=vscode
+WorkingDirectory=/workspaces/atelier-workspace
 ExecStart=/usr/bin/code-server --bind-addr 0.0.0.0:8080 --auth none
 Restart=on-failure
 RestartSec=2

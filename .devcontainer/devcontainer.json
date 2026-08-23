@@ -3,6 +3,8 @@
     "build": {
         "dockerfile": "Dockerfile"
     },
+    "remoteUser": "vscode",
+    "workspaceFolder": "/workspaces/atelier-workspace",
     "features": {
         "ghcr.io/devcontainers/features/docker-in-docker:2": {
             "version": "latest"
