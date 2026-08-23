@@ -7,6 +7,7 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
 
 ARG CODE_SERVER_VERSION=4.133.0
+ARG TTYD_VERSION=1.7.7
 
 # systemd comme PID 1 : verifie reellement (voir docs/PROGRESS.md, section
 # "boot Firecracker de l'agent") que sans ca, le noyau ne trouve aucun
@@ -39,11 +40,19 @@ RUN curl -fsSL -o /tmp/code-server.deb \
     && apt-get install -y --no-install-recommends /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
+# Terminal web (xterm.js embarque) pour un acces shell direct depuis le
+# dashboard atelier (cf. crates/api-server/src/terminal.rs), sans passer par
+# tout code-server — binaire statique officiel, version epinglee (pas de
+# curl|sh) : https://github.com/tsl0922/ttyd/releases
+RUN curl -fsSL -o /usr/local/bin/ttyd \
+        "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.x86_64" \
+    && chmod +x /usr/local/bin/ttyd
+
 # Demarrage au boot via systemd (pas `postStartCommand`, jamais rejoue par
 # le noyau — voir plus haut) : necessaire pour que ces services tournent
 # reellement une fois ce devcontainer boote comme microVM Firecracker par
 # `vm-supervisor`, pas seulement via le CLI `devcontainer`.
-COPY atelier-ministack.service atelier-code-server.service /etc/systemd/system/
+COPY atelier-ministack.service atelier-code-server.service atelier-terminal.service /etc/systemd/system/
 # `systemctl enable` ne fonctionne pas ici : cette image de base intercepte
 # `systemctl` par un script factice ("systemd is not running in this
 # container due to its overhead", constate en pratique) pour eviter des
@@ -54,4 +63,5 @@ COPY atelier-ministack.service atelier-code-server.service /etc/systemd/system/
 # methode reprise ici a la main.
 RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
     && ln -s ../atelier-ministack.service /etc/systemd/system/multi-user.target.wants/atelier-ministack.service \
-    && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service
+    && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service \
+    && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service

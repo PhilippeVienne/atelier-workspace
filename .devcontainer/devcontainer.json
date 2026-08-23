@@ -10,9 +10,10 @@
         "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
     },
     "postStartCommand": "bash .devcontainer/post-start.sh",
-    "forwardPorts": [4566, 8080],
+    "forwardPorts": [4566, 8080, 7681],
     "portsAttributes": {
         "4566": { "label": "ministack (AWS emulator)" },
-        "8080": { "label": "code-server (VS Code dans le navigateur)" }
+        "8080": { "label": "code-server (VS Code dans le navigateur)" },
+        "7681": { "label": "ttyd (terminal dans le navigateur)" }
     }
 }

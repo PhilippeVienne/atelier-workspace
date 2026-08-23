@@ -19,6 +19,10 @@ puisse le cloner sans identifiants git.
   navigateur, paquet `.deb` officiel epingle), demarre en arriere-plan sur
   le port `8080` — cf. le composant `dashboard` d'Atelier, qui documente ce
   choix comme reference pour l'acces web a un Workshop.
+- **[ttyd](https://github.com/tsl0922/ttyd)** (terminal dans le navigateur,
+  xterm.js embarque, binaire statique officiel epingle), demarre en
+  arriere-plan sur le port `7681` — utilise par le bouton "Terminal" du
+  dashboard Atelier (`crates/api-server/src/terminal.rs`).
 
 ## Verifie reellement (CLI officiel `devcontainer`, pas de mock)
 
