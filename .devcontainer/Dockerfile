@@ -68,4 +68,3 @@ RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
 
 RUN mkdir -p /workspaces/atelier-workspace && chown -R vscode:vscode /workspaces
 WORKDIR /workspaces/atelier-workspace
-USER vscode
