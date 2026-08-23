@@ -65,22 +65,3 @@ RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
     && ln -s ../atelier-ministack.service /etc/systemd/system/multi-user.target.wants/atelier-ministack.service \
     && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service \
     && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service
-
-# La spec devcontainer resout l'utilisateur effectif via `remoteUser`/
-# `containerUser` (devcontainer.json), ou a defaut le dernier `USER` de
-# l'image — jamais `root` implicitement. L'image de base
-# (mcr.microsoft.com/devcontainers/base) fournit deja un utilisateur non-root
-# `vscode` (uid 1000) pour ca, mais son `USER` final reste `root` (verifie :
-# `docker image inspect ... --format '{{.Config.User}}'` -> vide/root) —
-# necessaire pendant le `docker build` pour que les `RUN apt-get install`
-# ci-dessus fonctionnent sans `sudo`. `atelier-terminal.service`/
-# `atelier-code-server.service` heritaient donc de ce root par defaut, alors
-# que `remoteUser: "vscode"` est declare dans devcontainer.json : les deux
-# services tournaient root cote guest independamment de ce que la spec
-# devcontainer promet. Cree le dossier de travail par defaut
-# (`workspaceFolder`, meme convention `/workspaces/<repo>` que le CLI
-# `devcontainer` et `envbuilder`) avant de changer d'utilisateur, sinon il
-# serait cree plus tard appartenant a root.
-RUN mkdir -p /workspaces/atelier-workspace && chown vscode:vscode /workspaces/atelier-workspace
-WORKDIR /workspaces/atelier-workspace
-USER vscode
