@@ -4,6 +4,11 @@ After=network.target
 
 [Service]
 Type=simple
+User=vscode
+Group=vscode
+WorkingDirectory=/workspaces/atelier-workspace
+Environment=HOME=/home/vscode
+Environment=USER=vscode
 ExecStart=/usr/local/bin/ministack
 Restart=on-failure
 RestartSec=2

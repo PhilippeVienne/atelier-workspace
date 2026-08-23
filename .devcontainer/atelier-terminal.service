@@ -4,7 +4,12 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/ttyd --port 7681 --writable bash
+User=vscode
+Group=vscode
+WorkingDirectory=/workspaces/atelier-workspace
+Environment=HOME=/home/vscode
+Environment=USER=vscode
+ExecStart=/usr/local/bin/ttyd --port 7681 --writable bash -l
 Restart=on-failure
 RestartSec=2
 
