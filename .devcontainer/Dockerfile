@@ -66,5 +66,9 @@ RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
     && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service \
     && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service
 
-RUN mkdir -p /workspaces/atelier-workspace && touch /workspaces/atelier-workspace/.keep && chown -R vscode:vscode /workspaces
+LABEL atelier.version="1.0.1"
+
+RUN mkdir -p /workspaces/atelier-workspace \
+    && echo "# Atelier Workspace" > /workspaces/atelier-workspace/README.md \
+    && chown -R vscode:vscode /workspaces
 WORKDIR /workspaces/atelier-workspace
