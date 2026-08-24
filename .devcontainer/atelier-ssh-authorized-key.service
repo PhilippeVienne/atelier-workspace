@@ -1,0 +1,11 @@
+[Unit]
+Description=Recupere la cle publique SSH autorisee pour ce Workshop (atelier)
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/atelier-fetch-ssh-authorized-key.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -19,7 +19,7 @@ ARG TTYD_VERSION=1.7.7
 # `postStartCommand`.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        systemd systemd-sysv python3 python3-venv curl ca-certificates \
+        systemd systemd-sysv python3 python3-venv curl ca-certificates openssh-server \
     && rm -rf /var/lib/apt/lists/* \
     # Unites qui ne servent a rien dans une microVM (pas de vrai materiel/
     # reseau ethernet a configurer par systemd-networkd, pas de getty sur
@@ -56,25 +56,44 @@ RUN curl -fsSL -o /usr/local/bin/ttyd \
 COPY atelier-fetch-session-auth.sh /usr/local/bin/atelier-fetch-session-auth.sh
 RUN chmod +x /usr/local/bin/atelier-fetch-session-auth.sh
 
+# Canal SSH dedie a l'execution de commandes distantes (exec_in_workshop,
+# MCP — voir crates/api-server/src/exec.rs dans le depot atelier),
+# separement de la session interactive `ttyd` : cle publique par Workshop
+# recuperee au boot (voir ce script), jamais de mot de passe (voir
+# atelier-sshd.conf).
+COPY atelier-fetch-ssh-authorized-key.sh /usr/local/bin/atelier-fetch-ssh-authorized-key.sh
+RUN chmod +x /usr/local/bin/atelier-fetch-ssh-authorized-key.sh
+COPY atelier-sshd.conf /etc/ssh/sshd_config.d/atelier.conf
+
 # Demarrage au boot via systemd (pas `postStartCommand`, jamais rejoue par
 # le noyau — voir plus haut) : necessaire pour que ces services tournent
 # reellement une fois ce devcontainer boote comme microVM Firecracker par
 # `vm-supervisor`, pas seulement via le CLI `devcontainer`.
-COPY atelier-ministack.service atelier-code-server.service atelier-terminal.service /etc/systemd/system/
+COPY atelier-ministack.service atelier-code-server.service atelier-terminal.service atelier-ssh-authorized-key.service /etc/systemd/system/
+# `ssh.service` (paquet `openssh-server`) porte bien `WantedBy=multi-user.target`
+# dans son unite, mais N'EST PAS active par defaut dans cette image de base
+# (verifie empiriquement : `deb-systemd-helper` n'a pas cree le symlink —
+# contrairement a l'hypothese initiale de ce commentaire, `systemctl` etant
+# factice ici, voir plus bas) : le lien est donc ajoute explicitement,
+# meme methode que nos propres unites juste en dessous.
+RUN mkdir -p /etc/systemd/system/ssh.service.d
+COPY atelier-ssh-service.conf /etc/systemd/system/ssh.service.d/atelier.conf
 # `systemctl enable` ne fonctionne pas ici : cette image de base intercepte
 # `systemctl` par un script factice ("systemd is not running in this
 # container due to its overhead", constate en pratique) pour eviter des
 # echecs de paquets .deb pendant un `docker build` classique. Les unites
-# installees par des paquets (ex: docker.service) sont activees par
-# `deb-systemd-helper` (appele par leurs scripts postinst), qui manipule
-# directement les symlinks sans passer par ce faux `systemctl` — meme
-# methode reprise ici a la main.
+# installees par des paquets (ex: docker.service, ssh.service) sont
+# activees par `deb-systemd-helper` (appele par leurs scripts postinst),
+# qui manipule directement les symlinks sans passer par ce faux
+# `systemctl` — meme methode reprise ici a la main pour nos propres unites.
 RUN mkdir -p /etc/systemd/system/multi-user.target.wants \
     && ln -s ../atelier-ministack.service /etc/systemd/system/multi-user.target.wants/atelier-ministack.service \
     && ln -s ../atelier-code-server.service /etc/systemd/system/multi-user.target.wants/atelier-code-server.service \
-    && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service
+    && ln -s ../atelier-terminal.service /etc/systemd/system/multi-user.target.wants/atelier-terminal.service \
+    && ln -s ../atelier-ssh-authorized-key.service /etc/systemd/system/multi-user.target.wants/atelier-ssh-authorized-key.service \
+    && ln -s /lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/ssh.service
 
-LABEL atelier.version="1.0.1"
+LABEL atelier.version="1.1.0"
 
 RUN mkdir -p /workspaces/atelier-workspace \
     && echo "# Atelier Workspace" > /workspaces/atelier-workspace/README.md \
