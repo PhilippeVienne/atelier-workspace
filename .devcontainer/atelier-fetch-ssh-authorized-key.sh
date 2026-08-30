@@ -11,10 +11,15 @@
 # dans le depot atelier). Utilisee par crates/api-server/src/exec.rs (depot
 # atelier) pour executer des commandes de facon fiable (exec_in_workshop,
 # MCP) — un canal SSH separe du terminal interactif `ttyd`.
+# Budget de retry : voir le commentaire equivalent dans
+# atelier-fetch-session-auth.sh (~3 minutes constatees empiriquement pour
+# que le lien TAP guest<->net-proxy devienne joignable dans un
+# environnement de virtualisation imbriquee, largement au-dela de l'ancien
+# budget de 60s).
 set -euo pipefail
 
 METADATA_URL="http://169.254.0.1:3132/ssh-authorized-key"
-MAX_ATTEMPTS=30
+MAX_ATTEMPTS=150
 SLEEP_SECONDS=2
 SSH_DIR="/home/vscode/.ssh"
 

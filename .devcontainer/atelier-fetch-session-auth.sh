@@ -8,7 +8,15 @@
 # Reessaie pendant jusqu'a MAX_ATTEMPTS * SLEEP_SECONDS secondes : au boot,
 # net-proxy (autre conteneur du meme pod) peut ne pas avoir encore termine
 # son login Kubernetes-auth aupres d'OpenBao et donc repondre 503 tant
-# qu'aucun cycle de rafraichissement n'a reussi.
+# qu'aucun cycle de rafraichissement n'a reussi. Au-dela de ce cas, le lien
+# TAP guest<->net-proxy lui-meme peut mettre plusieurs minutes a devenir
+# joignable dans un environnement de virtualisation imbriquee (Firecracker
+# dans Docker dans kind) — ~3 minutes constatees empiriquement en session de
+# debug (2026-08-30), largement au-dela de l'ancien budget de 60s : le
+# service tombait alors sur le mot de passe de repli ci-dessous alors que
+# net-proxy avait deja la bonne valeur, causant un 401 systematique
+# (`atelier-terminal.service`/`atelier-code-server.service` inaccessibles
+# malgre un boot par ailleurs reussi). Budget releve avec marge.
 #
 # Imprime le mot de passe sur stdout (sans retour a la ligne) en cas de
 # succes. En cas d'echec apres tous les essais (OpenBao non configure pour
@@ -19,7 +27,7 @@
 set -euo pipefail
 
 METADATA_URL="http://169.254.0.1:3132/session-auth"
-MAX_ATTEMPTS=30
+MAX_ATTEMPTS=150
 SLEEP_SECONDS=2
 
 for _ in $(seq 1 "$MAX_ATTEMPTS"); do
